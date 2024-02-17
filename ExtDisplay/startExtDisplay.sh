@@ -1,30 +1,33 @@
 #!/bin/bash
 
+#Setup Variables
+secondaryDisplay="HDMI-1"
+mainDisplay="eDP-1"
+
 # $1 = resolution $2 = framerate $3 = add addition arguments to xrandr
 setRes () {
-    xrandr --output HDMI-1 --off
-    xrandr --output HDMI-1 --mode $1 --pos 0x0 --rotate normal --rate $2 $3
+    xrandr --output $secondaryDisplay --off
+    xrandr --output $secondaryDisplay --mode $1 --pos 0x0 --rotate normal --rate $2 $3
 }
 
-xrandr --listmonitors --verbose | grep -q 'HDMI-1 disconnected'
+xrandr --listmonitors --verbose | grep -q "$secondaryDisplay disconnected"
 if [ $? == 1 ]
 then
-    echo "HDMI-1 is connected"
+    echo "$secondaryDisplay is connected"
 else
     clear
-    echo "HDMI-1 is disconnected"
+    echo "$secondaryDisplay is disconnected"
     sleep 1
     exit
 fi
 
 PS3="Enter your choice: "
-options=("Mirror Display" "Use as second display" "Reset HDMI-1" "Cancel")
+options=("Mirror Display" "Use as second display" "Reset $secondaryDisplay" "Cancel")
 select opt in "${options[@]}"
 do
     case $opt in
         "Mirror Display")
             clear
-            xrandr
             PS3="Enter your choice: "
             options=("1920x1080x60" "custom" "cancel")
             select opt in "${options[@]}"
@@ -36,9 +39,10 @@ do
                         exit
                         ;;
                     "custom")
-                        echo -n "Enter custom resolution: " 
+                        xrandr
+                        echo -n "Enter custom resolution (Eg:1920x1080): " 
                         read res
-                        echo -n "Enter custom framerate: " 
+                        echo -n "Enter custom framerate (Eg:60): " 
                         read fps
                         setRes $res $fps
                         echo 'awesome.restart()' | awesome-client
@@ -54,23 +58,23 @@ do
             ;;
         "Use as second display")
             clear
-            xrandr
             PS3="Enter your choice: "
             options=("1920x1080x60" "custom" "cancel")
             select opt in "${options[@]}"
             do
                 case $opt in
                     "1920x1080x60")
-                        setRes "1920x1080" "60" '--left-of eDP-1'
+                        setRes "1920x1080" "60" "--left-of $mainDisplay"
                         echo 'awesome.restart()' | awesome-client
                         exit
                         ;;
                     "custom")
-                        echo -n "Enter custom resolution: " 
+                        xrandr
+                        echo -n "Enter custom resolution (Eg:1920x1080): " 
                         read res
-                        echo -n "Enter custom framerate: " 
+                        echo -n "Enter custom framerate (Eg:60): " 
                         read fps
-                        setRes $res $fps '--left-of eDP-1'
+                        setRes $res $fps "--left-of $mainDisplay"
                         echo 'awesome.restart()' | awesome-client
                         exit
                         ;;
@@ -82,8 +86,8 @@ do
             done
             break
             ;;
-        "Reset HDMI-1")
-            xrandr --output HDMI-1 --off
+        "Reset $secondaryDisplay")
+            xrandr --output $secondaryDisplay --off
             echo 'awesome.restart()' | awesome-client
             exit
             ;;
